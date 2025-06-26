@@ -1,0 +1,108 @@
+name: "Pull Request Linter"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pr_lint:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 10XDev/pull-request-linter-action@v6
+        id: lint_pr_title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Ensure the scope is lowercase alphanumeric
+          scopePattern: '^[a-z0-9]+$'
+          # Ensure the subject doesn't start with a non alphanumeric character.
+          # Ensure the subject doesn't end with a dot ".".
+          subjectPattern: '^[A-Za-z0-9].+[^. ]$'
+          # Ensure scope length within 10 characters.
+          maxScopeLength: 10
+          # Disallow types being used as scopes
+          disallowTypesAsScopes: true
+          # Disallow scopes which are inexact matches of recommended ones.
+          disallowScopes: |
+            blobs:
+              - "blob"
+            definition:
+              - "def"
+            dep:
+              - "deps"
+            designer:
+              - "panel"
+            diagnostic:
+              - "diag"
+            dx:
+              - "diag"
+            metrics:
+              - "metric"
+            models:
+              - "model"
+            output:
+              - "outs"
+            outputs:
+              - "outs"
+            panels:
+              - "panel"
+            plots:
+              - "plot"
+            schemas:
+              - "schema"
+            tests:
+            websummary:
+              - "ws"
+          suggestedScopes: |
+            algo
+            def
+            deps
+            diag
+            error
+            infra
+            meta
+            metric
+            model
+            outs
+            plot
+            schema
+          # Ensure title length within 69 characters
+          maxHeaderLength: 69
+          # Require a Jira trailer for all feat/fix commits
+          # requiredTrailers: |
+          #  - pattern: "^Jira: (https://10xtech.atlassian.net/browse/)?[A-Z]+-[0-9]+$"
+          #    types: 
+          #      - feat
+          #      - fix
+          requireRefsTrailerForReverts: true
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        # When the previous steps fails, the workflow would stop. By adding this
+        # condition you can continue the execution with the populated error message.
+        if: always() && (steps.lint_pr_title.outputs.error_message != null)
+        with:
+          header: pr-title-lint-error
+          message: |
+            PR titles must follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
+            
+            It looks like your proposed title needs to be adjusted.
+
+            ${{ steps.lint_pr_title.outputs.error_message }}
+            
+            You can also check out our guidelines [here](https://github.com/10XDev/documentation/blob/master/Tools_and_Languages/guidelines/commits.md).
+
+      # Delete a previous comment when the issue has been resolved
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:   
+          header: pr-title-lint-error
+          delete: true

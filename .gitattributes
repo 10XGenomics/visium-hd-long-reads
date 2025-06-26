@@ -1,0 +1,2 @@
+# Prevent accidentally checking in as CRLF.
+*.py  text eol=lf

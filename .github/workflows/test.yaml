@@ -1,0 +1,58 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Fetch history to identify new blobs
+        run: >
+          git fetch --unshallow --no-tags
+          --no-recurse-submodules
+          --no-write-fetch-head
+          --filter=blob:none origin HEAD
+      - name: Check for large files
+        uses: 10XGenomics/git-hygiene-check@main
+        with:
+          max_text_disk_size: 200000
+          max_binary_size: 32768
+          author_domain: 10xgenomics.com
+          ignore_emails: |
+            10xbuild@users.noreply.github.com
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: |
+          # TODO: set a specific Ruff version,to match what's in
+          # the .pre-commit-config.yaml configuration.
+          python -m pip install ruff
+
+      - name: Lint + Static Analysis for python code
+        run: |
+          ruff check --output-format=github .
+
+      - name: Check Python formatting
+        uses: psf/black@stable
+        with:
+          options: --check --diff
+          version: 24.10.0
+
