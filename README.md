@@ -2,7 +2,7 @@
 
 Amplified cDNA from the 10x Genomics Visium HD 3’ assay can be adapted for long-read sequencing technologies such as Pacific Biosciences (PacBio) and Oxford Nanopore Technologies (ONT). To process Visium HD 3’ long-read data, additional steps are required to prepare long-read sequences for the Space Ranger pipeline and to assign the Visium HD barcodes (BCs), unique molecular identifiers (UMIs), and spatial coordinates back to the original long-reads.
 
-This repo walks through how to assign UMIs and corrected barcodes to Visium HD 3’ long-read sequencing data using custom python scripts and Space Ranger (version 4.0 and above). The overall approach is to first generate synthetic short paired-end reads from the original long reads using a custom pre-processing script [long_reads_to_10x_paired.py](https://github.com/10XDev/visium-hd-long-reads/blob/main/long_reads_to_10x_paired.py). These synthetic short reads can be used as input to Space Ranger `count`. A second custom script [add_10x_bam_tags.py](https://github.com/10XDev/visium-hd-long-reads/blob/main/add_10x_bam_tags.py) then transfers the Visium HD UMIs and corrected barcodes back to the long-read data to be followed by downstream analysis with the long-read sequencing provider software tools.
+This repo walks through how to assign UMIs and corrected barcodes to Visium HD 3’ long-read sequencing data using custom python scripts and Space Ranger (version 4.0 and above). The overall approach is to first generate synthetic short paired-end reads from the original long reads using a custom pre-processing script [long_reads_to_10x_paired.py](https://github.com/10XGenomics/visium-hd-long-reads/blob/main/long_reads_to_10x_paired.py). These synthetic short reads can be used as input to Space Ranger `count`. A second custom script [add_10x_bam_tags.py](https://github.com/10XGenomics/visium-hd-long-reads/blob/main/add_10x_bam_tags.py) then transfers the Visium HD UMIs and corrected barcodes back to the long-read data to be followed by downstream analysis with the long-read sequencing provider software tools.
 
 ## Input Data
 
@@ -27,7 +27,7 @@ $ conda activate <env_name>
 ```
 
 # Step 1: Pre-Processing PacBio Data for Analysis with Space Ranger
-Use the [`long_reads_to_10x_paired.py`](https://github.com/10XDev/visium-hd-long-reads/blob/main/long_reads_to_10x_paired.py) python pre-processing script to generate synthetic short paired-end reads from your long-read BAM file.
+Use the [`long_reads_to_10x_paired.py`](https://github.com/10XGenomics/visium-hd-long-reads/blob/main/long_reads_to_10x_paired.py) python pre-processing script to generate synthetic short paired-end reads from your long-read BAM file.
 Example:
 ```
 $ python3 long_reads_to_10x_paired.py \
@@ -72,7 +72,7 @@ $ spaceranger count --id="HD_Adult_Mouse_Brain" \
 ```
 
 # Step 3: Post-Processing Space Ranger Outputs
-The post-processing script [`add_10x_bam_tags.py`](https://github.com/10XDev/visium-hd-long-reads/blob/main/add_10x_bam_tags.py) tags the raw, full-length long-read input BAM with the corrected Visium HD 3’ barcodes and UMIs. You can then use this file for additional long-read processing, alignment, and other secondary analysis workflows. The following standard BC/UMI BAM tags are used (see [10x BAM tag documentation](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/outputs/space-ranger-bam) for additional details): 
+The post-processing script [`add_10x_bam_tags.py`](https://github.com/10XGenomics/visium-hd-long-reads/blob/main/add_10x_bam_tags.py) tags the raw, full-length long-read input BAM with the corrected Visium HD 3’ barcodes and UMIs. You can then use this file for additional long-read processing, alignment, and other secondary analysis workflows. The following standard BC/UMI BAM tags are used (see [10x BAM tag documentation](https://www.10xgenomics.com/support/software/space-ranger/latest/analysis/outputs/space-ranger-bam) for additional details): 
 * `CB`: Corrected barcode (Note: reads that cannot be assigned a corrected barcode will not have a `CB` tag.)
 * `CR`: Uncorrected barcode
 * `UB`: Corrected UMI
