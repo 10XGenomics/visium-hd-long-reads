@@ -16,12 +16,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - name: Fetch history to identify new blobs
-        run: >
-          git fetch --unshallow --no-tags
-          --no-recurse-submodules
-          --no-write-fetch-head
-          --filter=blob:none origin HEAD
       - name: Check for large files
         uses: 10XGenomics/git-hygiene-check@main
         with:
